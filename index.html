@@ -1,1 +1,55 @@
-
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dự án Arduino của tôi</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        margin: 0;
+        padding: 30px;
+        text-align: center;
+    }
+    .box {
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+    }
+    h1 {
+        color: #2563eb;
+    }
+    p {
+        color: #555;
+    }
+    button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-size: 16px;
+    }
+</style>
+</head>
+<body>
+<div class="box">
+    <h1>Arduino Projects</h1>
+    <p>Kho lưu trữ các dự án Arduino của tôi.</p>
+    <p>ATmega8 • Arduino • Electronics</p>
+    <button onclick="hello()">
+        Bấm thử
+    </button>
+    <p id="result"></p>
+</div>
+<script>
+    function hello() {
+        document.getElementById("result").textContent =
+            "Hello GitHub!";
+    }
+</script>
+</body>
+</html>
