@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - Social Demo</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f0f2f5;
+      color: #1c1e21;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      width: min(980px, calc(100% - 36px));
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 52px;
+      align-items: center;
+      padding: 56px 0 80px;
+    }
+
+    .intro { margin-top: -28px; }
+
+    .logo {
+      color: #1877f2;
+      font-size: clamp(48px, 7vw, 62px);
+      font-weight: 800;
+      letter-spacing: -3px;
+    }
+
+    .tagline {
+      font-size: 27px;
+      line-height: 1.25;
+      max-width: 470px;
+      margin: 8px 0;
+    }
+
+    .login-wrap { text-align: center; }
+
+    .login-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.12);
+    }
+
+    input {
+      width: 100%;
+      height: 54px;
+      padding: 0 15px;
+      margin-bottom: 12px;
+      border: 1px solid #dddfe2;
+      border-radius: 6px;
+      font-size: 17px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #1877f2;
+      box-shadow: 0 0 0 2px #e7f3ff;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover { filter: brightness(.96); }
+
+    .login-btn {
+      width: 100%;
+      height: 50px;
+      background: #1877f2;
+      font-size: 20px;
+    }
+
+    .forgot {
+      display: inline-block;
+      margin: 17px 0;
+      color: #1877f2;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .forgot:hover { text-decoration: underline; }
+
+    .line {
+      border-top: 1px solid #dadde1;
+      margin: 4px 0 18px;
+    }
+
+    .create-btn {
+      background: #42b72a;
+      height: 48px;
+      padding: 0 18px;
+      font-size: 16px;
+    }
+
+    .create-page {
+      font-size: 14px;
+      margin-top: 28px;
+    }
+
+    .notice {
+      font-size: 12px;
+      color: #606770;
+      margin: 14px 8px 0;
+      line-height: 1.4;
+    }
+
+    footer {
+      background: white;
+      color: #737373;
+      font-size: 12px;
+      padding: 24px max(18px, calc((100% - 980px)/2));
+    }
+
+    .languages, .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      line-height: 1.8;
+    }
+
+    .links { margin-top: 8px; }
+
+    @media (max-width: 760px) {
+      main {
+        grid-template-columns: 1fr;
+        gap: 26px;
+        padding: 35px 0 45px;
+        max-width: 420px;
+      }
+
+      .intro {
+        text-align: center;
+        margin: 0;
+      }
+
+      .tagline {
+        font-size: 21px;
+        margin: 4px auto 0;
+      }
+
+      .logo { font-size: 48px; }
+
+      .create-page { margin-top: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <section class="intro">
+      <div class="logo">social</div>
+      <p class="tagline">
+        Kết nối và chia sẻ với mọi người
+        trong cuộc sống của bạn.
+      </p>
+    </section>
+
+    <section class="login-wrap">
+      <form class="login-card" id="demoLogin">
+
+        <input
+          type="text"
+          placeholder="Email hoặc số điện thoại"
+          autocomplete="off"
+          aria-label="Email hoặc số điện thoại"
+        >
+
+        <input
+          type="password"
+          placeholder="Mật khẩu"
+          autocomplete="new-password"
+          aria-label="Mật khẩu"
+        >
+
+        <button class="login-btn" type="submit">
+          Đăng nhập
+        </button>
+
+        <a href="#" class="forgot" id="forgotLink">
+          Quên mật khẩu?
+        </a>
+
+        <div class="line"></div>
+
+        <button
+          class="create-btn"
+          type="button"
+          id="createBtn"
+        >
+          Tạo tài khoản mới
+        </button>
+
+      </form>
+
+      <p class="create-page">
+        <strong>Tạo Trang</strong> dành cho người nổi tiếng,
+        thương hiệu hoặc doanh nghiệp.
+      </p>
+
+      <p class="notice">
+        Bản giao diện minh họa.
+        Dữ liệu nhập không được gửi đi hoặc lưu trữ.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="languages">
+      Tiếng Việt · English (US) · 中文 · Français · Español · 한국어
+    </div>
+
+    <div class="links">
+      Đăng ký · Đăng nhập · Messenger · Quyền riêng tư ·
+      Điều khoản · Trợ giúp · Giới thiệu
+    </div>
+  </footer>
+
+  <script>
+    // Chỉ mô phỏng giao diện.
+    // Không thu thập, gửi hoặc lưu thông tin đăng nhập.
+
+    document.getElementById('demoLogin')
+      .addEventListener('submit', function(event) {
+        event.preventDefault();
+        alert('Đây là giao diện demo. Chức năng đăng nhập chưa được kết nối.');
+      });
+
+    document.getElementById('forgotLink')
+      .addEventListener('click', function(event) {
+        event.preventDefault();
+        alert('Đây là liên kết minh họa trong bản demo.');
+      });
+
+    document.getElementById('createBtn')
+      .addEventListener('click', function() {
+        alert('Chức năng tạo tài khoản chưa được kết nối.');
+      });
+  </script>
+
+</body>
+</html>
