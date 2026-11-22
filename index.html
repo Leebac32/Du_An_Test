@@ -3,25 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Memories - Lưu Giữ Kỷ Niệm</title>
+    <title>Our Memories - Kỷ Niệm Yêu Thương</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #ff6b81;
             --primary-dark: #ff4757;
-            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.92);
             --text-main: #2f3542;
             --text-muted: #747d8c;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Quicksand', sans-serif;
             background: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%);
@@ -30,500 +25,316 @@
             padding-bottom: 90px;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
+        /* MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ */
+        #authScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
+        .auth-box {
+            background: white; padding: 35px; border-radius: 24px; width: 90%; max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center;
+        }
+        .auth-box h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 20px; }
+        .auth-input { width: 100%; padding: 12px 16px; margin-bottom: 15px; border: 1px solid #ced6e0; border-radius: 12px; font-family: inherit; font-size: 1rem; outline: none; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--primary-dark); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-bottom: 10px; }
+        .auth-switch { font-size: 0.9rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
 
-        /* Header & Day Counter */
+        /* GIAO DIỆN CHÍNH */
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; display: none; }
+        .container.active { display: block; }
+
         .hero-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 30px 20px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            margin-bottom: 25px;
+            background: var(--card-bg); backdrop-filter: blur(10px); border-radius: 24px;
+            padding: 30px 20px; text-align: center; box-shadow: var(--shadow); margin-bottom: 25px; position: relative;
+        }
+        .hero-title { font-family: 'Dancing Script', cursive; font-size: 2.8rem; color: var(--primary-dark); margin-bottom: 10px; }
+        
+        .counter-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+        .time-box { background: #fff0f3; border: 2px solid #ffccd5; border-radius: 16px; padding: 15px 20px; min-width: 90px; }
+        .time-box .num { display: block; font-size: 2rem; font-weight: 700; color: var(--primary-dark); }
+        .time-box .label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
+        /* NÚT MỞ BẢNG QUẢN TRỊ GÓC */
+        .admin-trigger-btn {
+            position: fixed; top: 20px; right: 20px; background: white; color: var(--primary-dark);
+            border: 2px solid var(--primary-dark); padding: 10px 18px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 99;
         }
 
-        .hero-title {
-            font-family: 'Dancing Script', cursive;
-            font-size: 2.8rem;
-            color: var(--primary-dark);
-            margin-bottom: 10px;
+        /* MODAL NHẬP MẬT KHẨU QUẢN TRỊ & QUẢN TRỊ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1001;
         }
-
-        .date-picker-wrap {
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-            color: var(--text-muted);
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
         }
+        .modal-box h3 { margin-bottom: 15px; color: var(--primary-dark); font-size: 1.4rem; }
+        .close-modal { float: right; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
 
-        .date-picker-wrap input {
-            border: 1px solid #dfe4ea;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-family: inherit;
-            color: var(--text-main);
-            outline: none;
-            margin-left: 8px;
-        }
+        .control-group { margin-bottom: 15px; text-align: left; }
+        .control-group label { display: block; font-weight: 700; margin-bottom: 5px; font-size: 0.9rem; }
+        .control-group input, .control-group select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ced6e0; font-family: inherit; }
 
-        .counter-grid {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
+        .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 12px; border: 1px solid #dfe4ea; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .time-box {
-            background: #fff0f3;
-            border: 2px solid #ffccd5;
-            border-radius: 16px;
-            padding: 15px 20px;
-            min-width: 90px;
-        }
+        canvas { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 10px auto; display: block;}
 
-        .time-box .num {
-            display: block;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-        }
+        .btn-primary { background: var(--primary-dark); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 10px; }
 
-        .time-box .label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.7);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--text-main);
-        }
-
-        .tab-btn.active {
-            background: var(--primary-dark);
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
-        }
-
-        /* Studio Section */
-        .section {
-            display: none;
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .studio-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        @media (max-width: 768px) {
-            .studio-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .control-group label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 6px;
-            font-size: 0.95rem;
-        }
-
-        .control-group input[type="text"],
-        .control-group select,
-        .control-group input[type="file"] {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #ced6e0;
-            font-family: inherit;
-            font-size: 0.95rem;
-        }
-
-        .filter-btns {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 8px 14px;
-            border: 1px solid #dfe4ea;
-            background: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .btn-primary {
-            background: var(--primary-dark);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 14px;
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-        }
-
-        .canvas-preview {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f1f2f6;
-            padding: 20px;
-            border-radius: 16px;
-        }
-
-        canvas {
-            max-width: 100%;
-            height: auto;
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-            border-radius: 4px;
-        }
-
-        /* Gallery Section */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 20px;
-        }
-
-        .memory-item {
-            background: white;
-            padding: 12px;
-            border-radius: 14px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .memory-item:hover {
-            transform: translateY(-4px);
-        }
-
-        .memory-item img {
-            width: 100%;
-            border-radius: 8px;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .memory-actions {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .btn-sm {
-            flex: 1;
-            padding: 6px 10px;
-            border: none;
-            border-radius: 8px;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
+        /* KHO KỶ NIỆM */
+        .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 15px; color: var(--text-main); }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .memory-item { background: white; padding: 12px; border-radius: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); text-align: center; }
+        .memory-item img, .memory-item video { width: 100%; border-radius: 8px; display: block; margin-bottom: 10px; object-fit: cover; max-height: 250px;}
+        .memory-actions { display: flex; justify-content: space-between; gap: 8px; }
+        .btn-sm { flex: 1; padding: 6px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
         .btn-download { background: #eccc68; color: #2f3542; }
         .btn-delete { background: #ff7f50; color: white; }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-muted);
-            grid-column: 1 / -1;
-        }
-
-        /* Floating Music Player */
+        /* THANH NHẠC */
         .music-bar {
-            position: fixed;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 92%;
-            max-width: 600px;
-            background: rgba(47, 53, 66, 0.95);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            z-index: 100;
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 92%; max-width: 600px; background: rgba(47, 53, 66, 0.95); backdrop-filter: blur(10px);
+            color: white; padding: 10px 20px; border-radius: 50px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 90;
         }
-
-        .music-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            max-width: 60%;
-        }
-
-        .music-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .music-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .music-btn {
-            background: var(--primary);
-            border: none;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .upload-music-label {
-            background: rgba(255,255,255,0.15);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            white-space: nowrap;
-        }
+        .music-info { display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 70%; font-size: 0.9rem; }
+        .music-btn { background: var(--primary); border: none; color: white; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- BỘ ĐẾM NGÀY -->
-    <div class="hero-card">
-        <h1 class="hero-title">Hành Trình Kỷ Niệm</h1>
-        <div class="date-picker-wrap">
-            <span>Ngày bắt đầu:</span>
-            <input type="date" id="startDateInput">
-        </div>
-        <div class="counter-grid">
-            <div class="time-box">
-                <span class="num" id="days">0</span>
-                <span class="label">Ngày</span>
-            </div>
-            <div class="time-box">
-                <span class="num" id="hours">00</span>
-                <span class="label">Giờ</span>
-            </div>
-            <div class="time-box">
-                <span class="num" id="minutes">00</span>
-                <span class="label">Phút</span>
-            </div>
-            <div class="time-box">
-                <span class="num" id="seconds">00</span>
-                <span class="label">Giây</span>
-            </div>
+    <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="authScreen">
+        <div class="auth-box">
+            <h2 id="authTitle">Đăng Nhập</h2>
+            <input type="text" id="authUsername" class="auth-input" placeholder="Tên tài khoản">
+            <input type="password" id="authPassword" class="auth-input" placeholder="Mật khẩu">
+            <button class="auth-btn" id="authActionBtn" onclick="handleAuth()">Đăng Nhập</button>
+            <span class="auth-switch" onclick="toggleAuthMode()" id="authSwitchText">Chưa có tài khoản? Tạo tài khoản mới</span>
         </div>
     </div>
 
-    <!-- ĐIỀU HƯỚNG TAB -->
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('studio')">Thiết Kế Ảnh</button>
-        <button class="tab-btn" onclick="switchTab('gallery')">Kho Kỷ Niệm (<span id="photoCount">0</span>)</button>
-    </div>
+    <!-- NÚT GÓC ĐỂ VÀO QUẢN TRỊ -->
+    <button class="admin-trigger-btn" id="adminTriggerBtn" style="display:none;" onclick="openAdminCheck()">⚙️ Quản Trị</button>
 
-    <!-- KHU VỰC THIẾT KẾ ẢNH -->
-    <div id="studio" class="section active">
-        <div class="studio-layout">
-            <div class="controls">
-                <div class="control-group">
-                    <label>1. Chọn ảnh kỷ niệm:</label>
-                    <input type="file" id="imageLoader" accept="image/*">
-                </div>
-
-                <div class="control-group">
-                    <label>2. Bộ lọc màu:</label>
-                    <div class="filter-btns">
-                        <button class="filter-btn active" onclick="setFilter('none', this)">Gốc</button>
-                        <button class="filter-btn" onclick="setFilter('sepia(0.45) contrast(1.1)', this)">Hoài cổ</button>
-                        <button class="filter-btn" onclick="setFilter('saturate(1.4) brightness(1.05)', this)">Tươi sáng</button>
-                        <button class="filter-btn" onclick="setFilter('grayscale(1) contrast(1.15)', this)">Đen trắng</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>3. Màu khung Polaroid:</label>
-                    <select id="frameColor" onchange="drawCanvas()">
-                        <option value="#ffffff">Trắng tinh khôi</option>
-                        <option value="#fff0f3">Hồng phấn nhẹ</option>
-                        <option value="#fdf6e3">Kem cổ điển</option>
-                        <option value="#2f3542">Đen sang trọng</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label>4. Dòng chữ kỷ niệm:</label>
-                    <input type="text" id="captionInput" placeholder="Nhập lời nhắn cho bức ảnh..." value="Khoảnh khắc đáng nhớ..." oninput="drawCanvas()">
-                </div>
-
-                <div class="control-group">
-                    <label>5. Ngày hiển thị trên ảnh:</label>
-                    <input type="text" id="photoDateInput" oninput="drawCanvas()">
-                </div>
-
-                <button class="btn-primary" onclick="saveMemory()">Lưu Vào Kho Kỷ Niệm</button>
-            </div>
-
-            <div class="canvas-preview">
-                <canvas id="polaroidCanvas" width="400" height="480"></canvas>
+    <!-- GIAO DIỆN CHÍNH -->
+    <div class="container" id="mainContainer">
+        <!-- BỘ ĐẾM NGÀY -->
+        <div class="hero-card">
+            <h1 class="hero-title">Khoảng Thời Gian Bên Nhau</h1>
+            <div class="counter-grid">
+                <div class="time-box"><span class="num" id="days">0</span><span class="label">Ngày</span></div>
+                <div class="time-box"><span class="num" id="hours">00</span><span class="label">Giờ</span></div>
+                <div class="time-box"><span class="num" id="minutes">00</span><span class="label">Phút</span></div>
+                <div class="time-box"><span class="num" id="seconds">00</span><span class="label">Giây</span></div>
             </div>
         </div>
-    </div>
 
-    <!-- KHO LƯU TRỮ ẢNH -->
-    <div id="gallery" class="section">
+        <!-- KHO KỶ NIỆM (HIỆN NGAY BÊN DƯỚI) -->
+        <div class="section-title">Kho Kỷ Niệm Của Chúng Mình</div>
         <div class="gallery-grid" id="galleryGrid">
-            <div class="empty-state">Chưa có bức ảnh nào. Hãy qua tab "Thiết Kế Ảnh" để tạo kỷ niệm đầu tiên nhé!</div>
+            <div style="grid-column: 1/-1; text-align:center; color:#747d8c; padding:30px;">Đang tải dữ liệu...</div>
         </div>
     </div>
-</div>
 
-<!-- THANH PHÁT NHẠC NỀN -->
-<div class="music-bar">
-    <div class="music-info">
-        <span>🎵</span>
-        <span class="music-title" id="musicTitle">Chưa chọn nhạc nền</span>
+    <!-- MODAL 1: NHẬP MẬT KHẨU ĐỂ VÀO QUẢN TRỊ -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box" style="max-width: 350px; text-align: center;">
+            <button class="close-modal" onclick="closeModal('passwordModal')">&times;</button>
+            <h3>Bảo Mật</h3>
+            <p style="font-size: 0.9rem; color: #747d8c; margin-bottom: 15px;">Nhập lại mật khẩu để mở khóa chỉnh sửa</p>
+            <input type="password" id="confirmPasswordInput" class="auth-input" placeholder="Mật khẩu tài khoản">
+            <button class="auth-btn" onclick="verifyAdminPassword()">Xác Nhận</button>
+        </div>
     </div>
-    <div class="music-controls">
-        <label class="upload-music-label">
-            + Chọn nhạc MP3
-            <input type="file" id="musicLoader" accept="audio/*" style="display: none;">
-        </label>
+
+    <!-- MODAL 2: BẢNG CHỈNH SỬA (ĐỔI NGÀY, THÊM ẢNH/VIDEO/NHẠC) -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="closeModal('adminModal')">&times;</button>
+            <h3>Bảng Điều Khiển & Thiết Kế</h3>
+            
+            <div class="control-group">
+                <label>1. Đặt lại ngày kỷ niệm bắt đầu:</label>
+                <input type="date" id="startDateInput" onchange="updateStartDateServer()">
+            </div>
+
+            <hr style="margin: 15px 0; border:0; border-top:1px solid #dfe4ea;">
+
+            <div class="control-group">
+                <label>2. Thiết kế Ảnh Polaroid:</label>
+                <input type="file" id="imageLoader" accept="image/*">
+            </div>
+            <div class="control-group">
+                <label>Bộ lọc màu:</label>
+                <div class="filter-btns">
+                    <button class="filter-btn active" onclick="setFilter('none', this)">Gốc</button>
+                    <button class="filter-btn" onclick="setFilter('sepia(0.45) contrast(1.1)', this)">Hoài cổ</button>
+                    <button class="filter-btn" onclick="setFilter('saturate(1.4)', this)">Tươi sáng</button>
+                    <button class="filter-btn" onclick="setFilter('grayscale(1)', this)">Đen trắng</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Màu khung:</label>
+                <select id="frameColor" onchange="drawCanvas()">
+                    <option value="#ffffff">Trắng tinh khôi</option>
+                    <option value="#fff0f3">Hồng phấn nhẹ</option>
+                    <option value="#fdf6e3">Kem cổ điển</option>
+                    <option value="#2f3542">Đen sang trọng</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Lời nhắn trên ảnh:</label>
+                <input type="text" id="captionInput" value="Khoảnh khắc tuyệt vời..." oninput="drawCanvas()">
+            </div>
+            <canvas id="polaroidCanvas" width="360" height="420"></canvas>
+            <button class="btn-primary" id="savePhotoBtn" onclick="savePhotoMemory()">Lưu Ảnh Này Lên Kho</button>
+
+            <hr style="margin: 20px 0; border:0; border-top:1px solid #dfe4ea;">
+
+            <div class="control-group">
+                <label>3. Hoặc tải Video kỷ niệm lên:</label>
+                <input type="file" id="videoLoader" accept="video/*">
+                <button class="btn-primary" style="background:#2ed573;" onclick="saveVideoMemory()">Tải Video Lên Kho</button>
+            </div>
+
+            <hr style="margin: 20px 0; border:0; border-top:1px solid #dfe4ea;">
+
+            <div class="control-group">
+                <label>4. Cài đặt Nhạc Nền (MP3):</label>
+                <input type="file" id="musicLoader" accept="audio/*">
+            </div>
+        </div>
+    </div>
+
+    <!-- THANH PHÁT NHẠC NỀN -->
+    <div class="music-bar">
+        <div class="music-info">
+            <span>🎵</span>
+            <span id="musicTitle">Chưa có nhạc nền</span>
+        </div>
         <button class="music-btn" id="playPauseBtn" onclick="togglePlay()">▶</button>
+        <audio id="bgMusic" loop></audio>
     </div>
-    <audio id="bgMusic" loop></audio>
-</div>
 
 <script>
-    // ================= 1. CƠ CHẾ ĐẾM NGÀY =================
-    const startDateInput = document.getElementById('startDateInput');
-    const savedStartDate = localStorage.getItem('memoryStartDate') || '2025-01-01';
-    startDateInput.value = savedStartDate;
+    // Thay thông tin Supabase của bạn vào đây:
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    startDateInput.addEventListener('change', (e) => {
-        localStorage.setItem('memoryStartDate', e.target.value);
+    let currentUser = null;
+    let isRegisterMode = false;
+    let startDateVal = '2025-01-01';
+
+    // ================= ĐĂNG NHẬP / ĐĂNG KÝ =================
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('authTitle').innerText = isRegisterMode ? 'Tạo Tài Khoản Mới' : 'Đăng Nhập';
+        document.getElementById('authActionBtn').innerText = isRegisterMode ? 'Đăng Ký Ngay' : 'Đăng Nhập';
+        document.getElementById('authSwitchText').innerText = isRegisterMode ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Tạo tài khoản mới';
+    }
+
+    async function handleAuth() {
+        const u = document.getElementById('authUsername').value.trim();
+        const p = document.getElementById('authPassword').value.trim();
+        if (!u || !p) { alert('Vui lòng nhập đầy đủ tên và mật khẩu!'); return; }
+
+        if (isRegisterMode) {
+            const { data, error } = await supabaseClient.from('users').insert([{ username: u, password: p }]);
+            if (error) alert('Tên tài khoản này đã tồn tại!');
+            else { alert('Đăng ký thành công! Hãy đăng nhập.'); toggleAuthMode(); }
+        } else {
+            const { data, error } = await supabaseClient.from('users').select('*').eq('username', u).eq('password', p);
+            if (error || data.length === 0) {
+                alert('Sai tên đăng nhập hoặc mật khẩu!');
+            } else {
+                currentUser = data[0];
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('mainContainer').classList.add('active');
+                document.getElementById('adminTriggerBtn').style.display = 'block';
+                initializeAppAfterLogin();
+            }
+        }
+    }
+
+    // ================= BẢO MẬT VÀO QUẢN TRỊ =================
+    function openAdminCheck() {
+        document.getElementById('confirmPasswordInput').value = '';
+        document.getElementById('passwordModal').classList.add('active');
+    }
+
+    function verifyAdminPassword() {
+        const pass = document.getElementById('confirmPasswordInput').value;
+        if (pass === currentUser.password) {
+            document.getElementById('passwordModal').classList.remove('active');
+            document.getElementById('adminModal').classList.add('active');
+            drawCanvas();
+        } else {
+            alert('Mật khẩu không chính xác!');
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    // ================= KHỞI TẠO SAU KHI ĐĂNG NHẬP =================
+    async function initializeAppAfterLogin() {
+        await loadSettings();
+        loadGallery();
+        setInterval(updateCounter, 1000);
         updateCounter();
-    });
+    }
+
+    // ================= ĐẾM NGÀY =================
+    async function loadSettings() {
+        const { data } = await supabaseClient.from('settings').select('*').eq('key', 'start_date');
+        if (data && data.length > 0) {
+            startDateVal = data[0].value;
+        } else {
+            await supabaseClient.from('settings').insert([{ key: 'start_date', value: '2025-01-01' }]);
+        }
+        document.getElementById('startDateInput').value = startDateVal;
+    }
+
+    async function updateStartDateServer() {
+        startDateVal = document.getElementById('startDateInput').value;
+        await supabaseClient.from('settings').upsert({ key: 'start_date', value: startDateVal });
+        updateCounter();
+    }
 
     function updateCounter() {
-        const start = new Date(startDateInput.value + 'T00:00:00');
+        const start = new Date(startDateVal + 'T00:00:00');
         const now = new Date();
         const diff = Math.max(0, now - start);
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-
-        document.getElementById('days').innerText = days;
-        document.getElementById('hours').innerText = String(hours).padStart(2, '0');
-        document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
-        document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
-    }
-    setInterval(updateCounter, 1000);
-    updateCounter();
-
-    // ================= 2. CHUYỂN TAB =================
-    function switchTab(tabId) {
-        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('hours').innerText = String(Math.floor((diff / (1000 * 60 * 60)) % 24)).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
     }
 
-    // ================= 3. TRÌNH THIẾT KẾ ẢNH POLAROID =================
+    // ================= THIẾT KẾ ẢNH =================
     const canvas = document.getElementById('polaroidCanvas');
     const ctx = canvas.getContext('2d');
     let uploadedImg = null;
     let currentFilter = 'none';
 
-    // Mặc định điền ngày hôm nay
-    const today = new Date();
-    document.getElementById('photoDateInput').value = today.toLocaleDateString('vi-VN');
-
     document.getElementById('imageLoader').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = (event) => {
             const img = new Image();
-            img.onload = function() {
-                uploadedImg = img;
-                drawCanvas();
-            }
+            img.onload = () => { uploadedImg = img; drawCanvas(); }
             img.src = event.target.result;
         }
         reader.readAsDataURL(file);
@@ -539,16 +350,12 @@
     function drawCanvas() {
         const frameColor = document.getElementById('frameColor').value;
         const caption = document.getElementById('captionInput').value;
-        const dateText = document.getElementById('photoDateInput').value;
-        const isDarkFrame = frameColor === '#2f3542';
+        const isDark = frameColor === '#2f3542';
 
-        // Vẽ nền khung Polaroid
         ctx.fillStyle = frameColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Vùng chứa ảnh (350x350)
-        const imgX = 25, imgY = 25, imgSize = 350;
-
+        const imgX = 20, imgY = 20, imgSize = 320;
         ctx.save();
         ctx.beginPath();
         ctx.rect(imgX, imgY, imgSize, imgSize);
@@ -556,106 +363,81 @@
 
         if (uploadedImg) {
             ctx.filter = currentFilter;
-            // Cắt ảnh tự động vừa khung vuông (Center Crop)
             const scale = Math.max(imgSize / uploadedImg.width, imgSize / uploadedImg.height);
-            const w = uploadedImg.width * scale;
-            const h = uploadedImg.height * scale;
-            const x = imgX + (imgSize - w) / 2;
-            const y = imgY + (imgSize - h) / 2;
-            ctx.drawImage(uploadedImg, x, y, w, h);
+            const w = uploadedImg.width * scale, h = uploadedImg.height * scale;
+            ctx.drawImage(uploadedImg, imgX + (imgSize - w) / 2, imgY + (imgSize - h) / 2, w, h);
         } else {
             ctx.fillStyle = '#dfe4ea';
             ctx.fillRect(imgX, imgY, imgSize, imgSize);
             ctx.fillStyle = '#747d8c';
-            ctx.font = '600 16px Quicksand';
+            ctx.font = '600 15px Quicksand';
             ctx.textAlign = 'center';
-            ctx.fillText('Hãy chọn 1 bức ảnh để bắt đầu', canvas.width / 2, imgY + imgSize / 2);
+            ctx.fillText('Chọn ảnh để bắt đầu', canvas.width / 2, imgY + imgSize / 2);
         }
         ctx.restore();
 
-        // Viết chữ chú thích
-        ctx.fillStyle = isDarkFrame ? '#ffffff' : '#2f3542';
-        ctx.font = '700 24px "Dancing Script", cursive';
+        ctx.fillStyle = isDark ? '#ffffff' : '#2f3542';
+        ctx.font = '700 22px "Dancing Script", cursive';
         ctx.textAlign = 'center';
-        ctx.fillText(caption, canvas.width / 2, 420);
-
-        // Viết ngày tháng
-        ctx.fillStyle = isDarkFrame ? '#a4b0be' : '#747d8c';
-        ctx.font = '600 13px Quicksand';
-        ctx.fillText(dateText, canvas.width / 2, 452);
+        ctx.fillText(caption, canvas.width / 2, 385);
     }
 
-    // Vẽ khung mặc định lúc mới mở trang
-    window.onload = () => {
-        drawCanvas();
-        initDB();
-    };
+    async function savePhotoMemory() {
+        if (!uploadedImg) { alert('Chưa chọn ảnh!'); return; }
+        const dataUrl = canvas.toDataURL('image/png');
+        await supabaseClient.from('memories').insert([{ image: dataUrl }]);
+        alert('Đã lưu ảnh lên kho thành công!');
+        document.getElementById('adminModal').classList.remove('active');
+        loadGallery();
+    }
 
-    // ================= 4. LƯU TRỮ ẢNH BẰNG INDEXEDDB =================
-    let db;
-    function initDB() {
-        const request = indexedDB.open('MemoryKeeperDB', 1);
-        request.onupgradeneeded = (e) => {
-            db = e.target.result;
-            db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
-        };
-        request.onsuccess = (e) => {
-            db = e.target.result;
+    async function saveVideoMemory() {
+        const fileInput = document.getElementById('videoLoader');
+        const file = fileInput.files[0];
+        if (!file) { alert('Chưa chọn video!'); return; }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const base64Video = e.target.result;
+            await supabaseClient.from('memories').insert([{ image: base64Video }]);
+            alert('Đã tải video lên kho thành công!');
+            document.getElementById('adminModal').classList.remove('active');
             loadGallery();
-        };
+        }
+        reader.readAsDataURL(file);
     }
 
-    function saveMemory() {
-        if (!uploadedImg) {
-            alert('Bạn vui lòng chọn một bức ảnh trước khi lưu nhé!');
+    // ================= KHO KỶ NIỆM (HIỂN THỊ) =================
+    async function loadGallery() {
+        const { data: photos } = await supabaseClient.from('memories').select('*').order('id', { ascending: false });
+        const grid = document.getElementById('galleryGrid');
+
+        if (!photos || photos.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#747d8c; padding:30px;">Chưa có kỷ niệm nào trên server.</div>';
             return;
         }
-        const dataUrl = canvas.toDataURL('image/png');
-        const transaction = db.transaction(['photos'], 'readwrite');
-        const store = transaction.objectStore('photos');
-        store.add({ image: dataUrl, createdAt: new Date().toISOString() });
 
-        transaction.oncomplete = () => {
-            alert('Đã lưu vào Kho Kỷ Niệm thành công!');
-            loadGallery();
-        };
-    }
-
-    function loadGallery() {
-        const transaction = db.transaction(['photos'], 'readonly');
-        const store = transaction.objectStore('photos');
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-            const photos = request.result.reverse();
-            document.getElementById('photoCount').innerText = photos.length;
-            const grid = document.getElementById('galleryGrid');
-
-            if (photos.length === 0) {
-                grid.innerHTML = '<div class="empty-state">Chưa có bức ảnh nào. Hãy qua tab "Thiết Kế Ảnh" để tạo kỷ niệm đầu tiên nhé!</div>';
-                return;
-            }
-
-            grid.innerHTML = photos.map(p => `
+        grid.innerHTML = photos.map(p => {
+            const isVideo = p.image.startsWith('data:video');
+            return `
                 <div class="memory-item">
-                    <img src="${p.image}" alt="Memory">
+                    ${isVideo ? `<video src="${p.image}" controls></video>` : `<img src="${p.image}" alt="Memory">`}
                     <div class="memory-actions">
-                        <a href="${p.image}" download="ky-niem-${p.id}.png" class="btn-sm btn-download" style="text-decoration:none;">Tải về</a>
+                        <a href="${p.image}" download="ky-niem" class="btn-sm btn-download">Tải về</a>
                         <button class="btn-sm btn-delete" onclick="deleteMemory(${p.id})">Xóa</button>
                     </div>
                 </div>
-            `).join('');
-        };
+            `;
+        }).join('');
     }
 
-    function deleteMemory(id) {
+    async function deleteMemory(id) {
         if (!confirm('Bạn có chắc muốn xóa kỷ niệm này?')) return;
-        const transaction = db.transaction(['photos'], 'readwrite');
-        transaction.objectStore('photos').delete(id);
-        transaction.oncomplete = () => loadGallery();
+        await supabaseClient.from('memories').delete().eq('id', id);
+        loadGallery();
     }
 
-    // ================= 5. TRÌNH PHÁT NHẠC NỀN =================
+    // ================= NHẠC NỀN =================
     const bgMusic = document.getElementById('bgMusic');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const musicTitle = document.getElementById('musicTitle');
@@ -663,25 +445,16 @@
     document.getElementById('musicLoader').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const url = URL.createObjectURL(file);
-        bgMusic.src = url;
+        bgMusic.src = URL.createObjectURL(file);
         musicTitle.innerText = file.name.replace(/\.[^/.]+$/, "");
         bgMusic.play();
         playPauseBtn.innerText = '⏸';
     });
 
     function togglePlay() {
-        if (!bgMusic.src) {
-            alert('Hãy bấm "+ Chọn nhạc MP3" để tải bài hát yêu thích của bạn lên trước nhé!');
-            return;
-        }
-        if (bgMusic.paused) {
-            bgMusic.play();
-            playPauseBtn.innerText = '⏸';
-        } else {
-            bgMusic.pause();
-            playPauseBtn.innerText = '▶';
-        }
+        if (!bgMusic.src) { alert('Chưa chọn nhạc MP3!'); return; }
+        if (bgMusic.paused) { bgMusic.play(); playPauseBtn.innerText = '⏸'; }
+        else { bgMusic.pause(); playPauseBtn.innerText = '▶'; }
     }
 </script>
 
